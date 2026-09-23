@@ -1,0 +1,38 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Compilados
+*.class
+
+# Logs
+*.log
+
+# IDE - IntelliJ
+.idea/
+*.iml
+*.iws
+
+# IDE - Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# IDE - VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Variables de entorno / secretos
+.env
+application-local.properties
+application-secrets.properties
+
+# Archivos de test/cobertura
+*.jacoco
