@@ -79,8 +79,9 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(req -> req
                 .requestMatchers("/api/auth/register").permitAll()
                 .requestMatchers("/api/auth/login").permitAll()
-                .requestMatchers("/api/categorias/**").permitAll()
-                .requestMatchers("/api/noticias/feed/**").authenticated()
+                // .requestMatchers("/api/participantes").permitAll()
+                .requestMatchers("/api/categorias/**").authenticated()
+                .requestMatchers("/api/noticia/**").authenticated()
                 .requestMatchers("/api/investigador/**").hasAuthority(INVESTIGADOR)
                 .anyRequest().authenticated()
             )

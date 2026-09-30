@@ -16,7 +16,7 @@ import com.example.aletheia.pretest.service.IParticipanteService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/participante")
+@RequestMapping("/api/participantes")
 @RequiredArgsConstructor
 public class ParticipanteController {
     private final IParticipanteService service;

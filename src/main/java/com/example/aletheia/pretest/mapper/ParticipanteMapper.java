@@ -14,6 +14,7 @@ public interface ParticipanteMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "contrasenaHash", ignore = true)
     @Mapping(target = "fechaRegistro", ignore = true)
+    @Mapping(target = "rol", ignore= true)
     Participante toEntity(ParticipanteRegisterDTO dto);
 
     ParticipanteResponseDTO toResponseDTO(Participante entity);
