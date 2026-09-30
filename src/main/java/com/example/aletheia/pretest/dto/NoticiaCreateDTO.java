@@ -58,7 +58,8 @@ public class NoticiaCreateDTO {
 
     @NotBlank (message = "La fuente del texto es obligatoria")
     @Size(min = 5, max = 100, message = "La fuente del texto debe tener entre 5 y 100 caracteres")
-    private String fuenteTexto;
-    
-    private String textoOcrBruto;
+    private FuenteTexto fuenteTexto;
+
+    @NotNull 
+    private Integer categoriaVeredictoId;
 }
