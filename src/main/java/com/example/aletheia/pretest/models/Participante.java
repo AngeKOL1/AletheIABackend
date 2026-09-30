@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.example.aletheia.pretest.models.enums.Forma;
 import com.example.aletheia.pretest.models.enums.Rol;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -67,6 +68,10 @@ public class Participante {
 
     @Column(name = "frecuencia_consumo_noticias")
     private String frecuenciaConsumoNoticias;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "forma_asignada")
+    private Forma formaAsignada;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "rol", nullable = false)

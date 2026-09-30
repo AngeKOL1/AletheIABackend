@@ -1,5 +1,7 @@
 package com.example.aletheia.pretest.service.impl;
 
+import java.util.Random;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,6 +12,7 @@ import com.example.aletheia.pretest.dto.ParticipanteRegisterDTO;
 import com.example.aletheia.pretest.dto.ParticipanteResponseDTO;
 import com.example.aletheia.pretest.mapper.ParticipanteMapper;
 import com.example.aletheia.pretest.models.Participante;
+import com.example.aletheia.pretest.models.enums.Forma;
 import com.example.aletheia.pretest.models.enums.Rol;
 import com.example.aletheia.pretest.repository.ParticipanteRepo;
 import com.example.aletheia.pretest.service.IParticipanteService;
@@ -34,6 +37,7 @@ public class ParticipanteService extends GenericService<Participante, Integer> i
         Participante participante = mapper.toEntity(dto);
         participante.setContrasenaHash(passwordEncoderService.encode(dto.getContrasena()));
         participante.setRol(Rol.PARTICIPANTE);
+        participante.setFormaAsignada(new Random().nextBoolean() ? Forma.A : Forma.B);
         Participante savedParticipante = repo.save(participante);
         return mapper.toResponseDTO(savedParticipante);
     }
