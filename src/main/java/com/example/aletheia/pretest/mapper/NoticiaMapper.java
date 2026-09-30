@@ -11,6 +11,7 @@ public interface NoticiaMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "categoriaVeredicto", ignore = true)
+    @Mapping(target = "textoOcrBruto", ignore = true)
     Noticia toEntity(NoticiaCreateDTO dto);
 
     @Mapping(target = "categoriaVeredictoNombre", source = "categoriaVeredicto.nombre")
@@ -19,5 +20,6 @@ public interface NoticiaMapper {
     NoticiaFeedDTO toFeedDTO(Noticia entity);
 
     List<NoticiaResponseDTO> toResponseDTOList(List<Noticia> entities);
+
     List<NoticiaFeedDTO> toFeedDTOList(List<Noticia> entities);
 }
