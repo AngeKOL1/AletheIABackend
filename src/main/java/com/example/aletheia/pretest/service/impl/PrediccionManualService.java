@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.aletheia.pretest.dto.PrediccionManualCreateDTO;
 import com.example.aletheia.pretest.dto.PrediccionManualResponseDTO;
+import com.example.aletheia.pretest.exception.ModelNotFoundException;
 import com.example.aletheia.pretest.mapper.PrediccionManualMapper;
 import com.example.aletheia.pretest.models.CategoriaVeredicto;
 import com.example.aletheia.pretest.models.Noticia;
@@ -18,7 +19,6 @@ import com.example.aletheia.pretest.repository.ParticipanteRepo;
 import com.example.aletheia.pretest.repository.PrediccionManualRepo;
 import com.example.aletheia.pretest.service.IPrediccionManualService;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 
 @Service
@@ -43,11 +43,11 @@ public class PrediccionManualService extends GenericService<PrediccionManual, In
         }
 
         Participante participante = participanteRepo.findById(participanteId)
-                .orElseThrow(() -> new EntityNotFoundException("Participante no encontrado"));
+                .orElseThrow(() -> new ModelNotFoundException("Participante no encontrado"));
         Noticia noticia = noticiaRepo.findById(dto.getNoticiaId())
-                .orElseThrow(() -> new EntityNotFoundException("Noticia no encontrada"));
+                .orElseThrow(() -> new ModelNotFoundException("Noticia no encontrada"));
         CategoriaVeredicto categoria = categoriaRepo.findById(dto.getCategoriaElegidaId())
-                .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
+                .orElseThrow(() -> new ModelNotFoundException("Categoría no encontrada"));
 
         PrediccionManual entity = new PrediccionManual();
         entity.setParticipante(participante);

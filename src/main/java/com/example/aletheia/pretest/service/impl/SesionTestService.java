@@ -2,6 +2,8 @@ package com.example.aletheia.pretest.service.impl;
 
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
+
+import com.example.aletheia.pretest.exception.ModelNotFoundException;
 import com.example.aletheia.pretest.models.Participante;
 import com.example.aletheia.pretest.models.SesionTest;
 import com.example.aletheia.pretest.models.enums.Fase;
@@ -9,7 +11,6 @@ import com.example.aletheia.pretest.repository.ParticipanteRepo;
 import com.example.aletheia.pretest.repository.SesionTestRepo;
 import com.example.aletheia.pretest.service.ISesionTestService;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -27,7 +28,7 @@ public class SesionTestService extends GenericService<SesionTest, Integer> imple
     @Override 
     public SesionTest iniciar(Integer participanteId, Fase fase, String titulo) {
         Participante participante = participanteRepo.findById(participanteId)
-                .orElseThrow(() -> new EntityNotFoundException("Participante no encontrado"));
+                .orElseThrow(() -> new ModelNotFoundException("Participante no encontrado"));
         SesionTest sesion = new SesionTest();
         sesion.setParticipante(participante);
         sesion.setFase(fase);
@@ -39,7 +40,7 @@ public class SesionTestService extends GenericService<SesionTest, Integer> imple
     @Override 
     public SesionTest finalizar(Integer sesionId) {
         SesionTest sesion = repo.findById(sesionId)
-                .orElseThrow(() -> new EntityNotFoundException("Sesión no encontrada"));
+                .orElseThrow(() -> new ModelNotFoundException("Sesión no encontrada"));
         sesion.setHoraFin(LocalDateTime.now());
         return repo.save(sesion);
     }

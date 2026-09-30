@@ -1,15 +1,14 @@
 package com.example.aletheia.pretest.security;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.net.URI;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-
-import com.example.aletheia.pretest.exception.CustomErrorRecord;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,10 +31,13 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             exceptionMsg = "Token no encontrado o inválido";
         }
 
-        CustomErrorRecord errorRecord = new CustomErrorRecord(LocalDateTime.now(), exceptionMsg, request.getRequestURI());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, exceptionMsg);
+        pd.setTitle("No autenticado");
+        pd.setInstance(URI.create(request.getRequestURI()));
+        pd.setProperty("errorType", "AuthError");
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write(objectMapper.writeValueAsString(errorRecord));
+        response.getWriter().write(objectMapper.writeValueAsString(pd));
     }
 }

@@ -1,5 +1,6 @@
 package com.example.aletheia.pretest.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 // import org.apache.hc.client5.http.auth.InvalidCredentialsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -10,18 +11,21 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-
 @RestControllerAdvice
+@Slf4j
 public class ResponseExceptionHandler {
     public static final String ERROR_TYPE_PROPERTY = "errorType";
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationErrors(
-            MethodArgumentNotValidException ex, WebRequest request) {
+            MethodArgumentNotValidException ex, HttpServletRequest request) {
 
         Map<String, String> errores = new HashMap<>();
 
@@ -36,7 +40,7 @@ public class ResponseExceptionHandler {
                 "Uno o más campos tienen errores de validación");
 
         pd.setTitle("Error de validación");
-        pd.setType(URI.create(request.getDescription(false)));
+        pd.setInstance(URI.create(request.getRequestURI()));
         pd.setProperty(ERROR_TYPE_PROPERTY, "ValidationError");
         pd.setProperty("campos", errores); // ← aquí van los errores por campo
 
@@ -44,37 +48,39 @@ public class ResponseExceptionHandler {
     }
 
     @ExceptionHandler(ModelNotFoundException.class)
-    public ProblemDetail handleModelNotFoundException(ModelNotFoundException ex, WebRequest request) {
+    public ProblemDetail handleModelNotFoundException(ModelNotFoundException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         pd.setTitle("Model Not Found");
-        pd.setType(URI.create(request.getDescription(false)));
+        pd.setInstance(URI.create(request.getRequestURI()));
         pd.setProperty(ERROR_TYPE_PROPERTY, "ModelNotFound");
         return pd;
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ProblemDetail handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+    public ProblemDetail handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setTitle("Bad Request");
-        pd.setType(URI.create(request.getDescription(false)));
+        pd.setInstance(URI.create(request.getRequestURI()));
         pd.setProperty(ERROR_TYPE_PROPERTY, "InvalidArgument");
         return pd;
     }
 
     @ExceptionHandler(ArithmeticException.class)
-    public ProblemDetail handleArithmeticException(ArithmeticException ex, WebRequest request) {
+    public ProblemDetail handleArithmeticException(ArithmeticException ex, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_ACCEPTABLE, ex.getMessage());
         pd.setTitle("Arithmetic Error");
-        pd.setType(URI.create(request.getDescription(false)));
+        pd.setInstance(URI.create(request.getRequestURI()));
         pd.setProperty(ERROR_TYPE_PROPERTY, "MathError");
         return pd;
     }
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGeneralException(Exception ex, WebRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        log.error("Error no controlado", ex); // log completo para ti, en el servidor
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Ocurrió un error inesperado. Contacta al equipo si persiste.");
         pd.setTitle("Internal Server Error");
-        pd.setType(URI.create(request.getDescription(false)));
         pd.setProperty(ERROR_TYPE_PROPERTY, "UnexpectedError");
         return pd;
     }
@@ -104,6 +110,24 @@ public class ResponseExceptionHandler {
 
         pd.setTitle("Password Mismatch");
         pd.setProperty(ERROR_TYPE_PROPERTY, "ValidationError");
+        return pd;
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex, WebRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                "El recurso ya existe o viola una restricción de la base de datos");
+        pd.setTitle("Conflicto de datos");
+        pd.setProperty(ERROR_TYPE_PROPERTY, "DataConflict");
+        return pd;
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ProblemDetail handleIllegalState(IllegalStateException ex, WebRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        pd.setTitle("Estado inválido");
+        pd.setProperty(ERROR_TYPE_PROPERTY, "InvalidState");
         return pd;
     }
 

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -73,19 +74,17 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(req -> req
-                .requestMatchers("/api/auth/register").permitAll()
-                .requestMatchers("/api/auth/login").permitAll()
-                // .requestMatchers("/api/participantes").permitAll()
-                .requestMatchers("/api/categorias/**").authenticated()
-                .requestMatchers("/api/noticia/**").authenticated()
-                .requestMatchers("/api/investigador/**").hasAuthority(INVESTIGADOR)
-                .anyRequest().authenticated()
-            )
-            .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint));
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(req -> req
+                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categorias").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/items-cuestionario").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/noticias").hasAuthority(INVESTIGADOR)
+                        .requestMatchers(HttpMethod.GET, "/api/noticias").hasAuthority(INVESTIGADOR)
+                        .anyRequest().authenticated())
+                .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint));
 
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
