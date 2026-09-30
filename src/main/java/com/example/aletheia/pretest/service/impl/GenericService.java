@@ -2,12 +2,16 @@ package com.example.aletheia.pretest.service.impl;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.example.aletheia.pretest.exception.ModelNotFoundException;
 import com.example.aletheia.pretest.repository.GenericRepo;
 import com.example.aletheia.pretest.service.IGenericService;
 
 public abstract class GenericService<T, ID> implements IGenericService<T, ID> {
     protected abstract GenericRepo<T, ID> getRepo();
+
     public static final String ID_NOT_FOUND_MESSAGE = "ID NOT FOUND: ";
 
     @Override
@@ -44,5 +48,9 @@ public abstract class GenericService<T, ID> implements IGenericService<T, ID> {
         }
 
         getRepo().deleteById(id);
+    }
+
+    public Page<T> listarPaginado(Pageable pageable) {
+        return getRepo().findAll(pageable);
     }
 }

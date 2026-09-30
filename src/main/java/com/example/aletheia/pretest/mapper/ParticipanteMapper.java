@@ -1,5 +1,7 @@
 package com.example.aletheia.pretest.mapper;
 
+import java.util.List;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -15,4 +17,6 @@ public interface ParticipanteMapper {
     Participante toEntity(ParticipanteRegisterDTO dto);
 
     ParticipanteResponseDTO toResponseDTO(Participante entity);
+
+    List<ParticipanteResponseDTO> toResponseDTOList(List<Participante> entities);
 }

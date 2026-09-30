@@ -6,4 +6,6 @@ import com.example.aletheia.pretest.models.Participante;
 
 public interface ParticipanteRepo extends GenericRepo<Participante, Integer> {
     Optional<Participante> findByCorreo(String correo);
+
+    boolean existsByCorreo(String correo);
 }
