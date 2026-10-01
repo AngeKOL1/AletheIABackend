@@ -13,4 +13,6 @@ public interface IPrediccionManualService extends IGenericService<PrediccionManu
     List<PrediccionManualResponseDTO> listarPorParticipanteYFase(Integer participanteId, Fase fase);
 
     long contarRespondidas(Integer participanteId, Fase fase);
+
+    List<Integer> obtenerIdsNoticiasRespondidas(Integer participanteId, Fase fase);
 }

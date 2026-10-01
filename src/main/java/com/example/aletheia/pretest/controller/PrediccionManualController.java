@@ -40,4 +40,10 @@ public class PrediccionManualController {
         Integer participanteId = (Integer) request.getAttribute("authenticatedParticipanteId");
         return service.contarRespondidas(participanteId, fase);
     }
+
+    @GetMapping("/mis-ids-respondidos")
+    public List<Integer> misIdsRespondidos(@RequestParam Fase fase, HttpServletRequest request) {
+        Integer participanteId = (Integer) request.getAttribute("authenticatedParticipanteId");
+        return service.obtenerIdsNoticiasRespondidas(participanteId, fase);
+    }
 }

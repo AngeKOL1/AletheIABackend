@@ -71,4 +71,9 @@ public class PrediccionManualService extends GenericService<PrediccionManual, In
         return repo.countByParticipanteIdAndFase(participanteId, fase);
     }
 
+    @Override
+    public List<Integer> obtenerIdsNoticiasRespondidas(Integer participanteId, Fase fase) {
+        return repo.findNoticiaIdsByParticipanteIdAndFase(participanteId, fase);
+    }
+
 }

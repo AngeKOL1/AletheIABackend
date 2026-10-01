@@ -9,10 +9,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.aletheia.pretest.dto.EstadoParticipanteDTO;
 import com.example.aletheia.pretest.dto.PageResponseDTO;
 import com.example.aletheia.pretest.dto.ParticipanteResponseDTO;
+import com.example.aletheia.pretest.models.enums.Fase;
 import com.example.aletheia.pretest.service.IParticipanteService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -31,4 +34,11 @@ public class ParticipanteController {
         return ResponseEntity.ok(service.listarParticipantes(pageable));
     }
 
+    @GetMapping("/me/estado")
+    public EstadoParticipanteDTO miEstado(@RequestParam Fase fase, HttpServletRequest request) {
+        Integer participanteId = (Integer) request.getAttribute("authenticatedParticipanteId");
+        return service.obtenerEstado(participanteId, fase);
+    }
+
+    
 }

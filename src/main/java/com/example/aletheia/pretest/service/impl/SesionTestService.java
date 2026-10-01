@@ -1,6 +1,8 @@
 package com.example.aletheia.pretest.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 
 import com.example.aletheia.pretest.exception.ModelNotFoundException;
@@ -20,13 +22,21 @@ public class SesionTestService extends GenericService<SesionTest, Integer> imple
     private final SesionTestRepo repo;
     private final ParticipanteRepo participanteRepo;
 
-    @Override 
-    protected SesionTestRepo getRepo(){
+    @Override
+    protected SesionTestRepo getRepo() {
         return repo;
     }
 
-    @Override 
+    @Override
     public SesionTest iniciar(Integer participanteId, Fase fase, String titulo) {
+        Optional<SesionTest> existente = repo.findByParticipanteIdAndFase(participanteId, fase);
+        if (existente.isPresent() && existente.get().getHoraFin() == null) {
+            return existente.get(); // ya hay una sesión abierta, la reutiliza
+        }
+        if (existente.isPresent()) {
+            throw new IllegalStateException("Ya completaste el cuestionario de esta fase");
+        }
+
         Participante participante = participanteRepo.findById(participanteId)
                 .orElseThrow(() -> new ModelNotFoundException("Participante no encontrado"));
         SesionTest sesion = new SesionTest();
@@ -37,7 +47,7 @@ public class SesionTestService extends GenericService<SesionTest, Integer> imple
         return repo.save(sesion);
     }
 
-    @Override 
+    @Override
     public SesionTest finalizar(Integer sesionId) {
         SesionTest sesion = repo.findById(sesionId)
                 .orElseThrow(() -> new ModelNotFoundException("Sesión no encontrada"));

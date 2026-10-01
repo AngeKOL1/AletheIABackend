@@ -14,4 +14,6 @@ public interface INoticiaService extends IGenericService<Noticia, Integer> {
     List<NoticiaFeedDTO> obtenerFeedPorForma(Forma forma);
 
     List<NoticiaResponseDTO> listarTodas();
+
+    List<NoticiaFeedDTO> obtenerFeedParaParticipante(Integer participanteId);
 }

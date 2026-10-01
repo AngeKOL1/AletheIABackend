@@ -12,4 +12,8 @@ public interface NoticiaRepo extends GenericRepo<Noticia, Integer> {
     List<Noticia> findByForma(Forma forma);
 
     Page<Noticia> findByForma(Forma forma, Pageable pageable);
+
+    List<Noticia> findByFormaOrderByIdAsc(Forma forma);
+
+    long countByForma(Forma forma);
 }
