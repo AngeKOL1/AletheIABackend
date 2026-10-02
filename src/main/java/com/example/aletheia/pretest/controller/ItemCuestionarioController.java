@@ -1,10 +1,12 @@
 package com.example.aletheia.pretest.controller;
 
 import java.util.List;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.aletheia.pretest.dto.ItemCuestionarioResponseDTO;
-import com.example.aletheia.pretest.mapper.ItemCuestionarioMapper;
-import com.example.aletheia.pretest.repository.ItemCuestionarioRepo;
+import com.example.aletheia.pretest.models.enums.Fase;
+import com.example.aletheia.pretest.service.IItemCuestionarioService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -12,11 +14,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ItemCuestionarioController {
 
-    private final ItemCuestionarioRepo repo;
-    private final ItemCuestionarioMapper mapper;
+    private final IItemCuestionarioService service;
 
     @GetMapping
-    public List<ItemCuestionarioResponseDTO> listar() {
-        return mapper.toResponseDTOList(repo.findAllByOrderByOrdenAsc());
+    public ResponseEntity<List<ItemCuestionarioResponseDTO>> listar(@RequestParam Fase fase) {
+        return ResponseEntity.ok(service.listar(fase));
     }
 }

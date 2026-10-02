@@ -34,4 +34,8 @@ public class ParticipanteRegisterDTO {
     private String nivelEducativo;
 
     private String frecuenciaConsumoNoticias;
+
+    private String medioComunicacion;
+    
+    private String cargo;
 }

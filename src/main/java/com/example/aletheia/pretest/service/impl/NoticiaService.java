@@ -58,4 +58,11 @@ public class NoticiaService extends GenericService<Noticia, Integer> implements 
                 .orElseThrow(() -> new ModelNotFoundException("Participante no encontrado"));
         return mapper.toFeedDTOList(repo.findByFormaOrderByIdAsc(participante.getFormaAsignada()));
     }
+
+    @Override
+    public List<NoticiaResponseDTO> crearEnLote(List<NoticiaCreateDTO> dtos) {
+        return dtos.stream()
+                .map(this::createNoticia)
+                .toList();
+    }
 }

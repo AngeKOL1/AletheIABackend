@@ -16,4 +16,6 @@ public interface INoticiaService extends IGenericService<Noticia, Integer> {
     List<NoticiaResponseDTO> listarTodas();
 
     List<NoticiaFeedDTO> obtenerFeedParaParticipante(Integer participanteId);
+
+    List<NoticiaResponseDTO> crearEnLote(List<NoticiaCreateDTO> dtos);
 }

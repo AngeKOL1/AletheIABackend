@@ -81,7 +81,8 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categorias").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/items-cuestionario").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/noticias").hasAuthority(INVESTIGADOR)
+                        .requestMatchers(HttpMethod.POST, "/api/noticias", "/api/noticias/lote")
+                        .hasAuthority(INVESTIGADOR)
                         .requestMatchers(HttpMethod.GET, "/api/noticias").hasAuthority(INVESTIGADOR)
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint));

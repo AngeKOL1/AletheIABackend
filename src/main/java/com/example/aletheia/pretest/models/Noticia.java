@@ -23,8 +23,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-@Data 
-@AllArgsConstructor 
+@Data
+@AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "noticia")
@@ -60,9 +60,8 @@ public class Noticia {
     @Column(name = "img", nullable = false)
     private String img;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "fuente")
-    private FuenteTexto fuente;
+    private String fuente;
 
     @Column(name = "fecha_publicacion")
     private LocalDate fechaPublicacion;
@@ -74,14 +73,15 @@ public class Noticia {
     @Column(name = "forma", nullable = false)
     private Forma forma;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "fuente_texto")
-    private String fuenteTexto;
+    private FuenteTexto fuenteTexto;
 
     @Lob
     @Column(name = "texto_ocr_bruto")
     private String textoOcrBruto;
 
-    @ManyToOne (fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoria_veredicto_id", nullable = false)
     private CategoriaVeredicto categoriaVeredicto;
 }

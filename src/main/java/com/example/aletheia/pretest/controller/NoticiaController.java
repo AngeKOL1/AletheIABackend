@@ -1,14 +1,11 @@
 package com.example.aletheia.pretest.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.aletheia.pretest.dto.NoticiaCreateDTO;
 import com.example.aletheia.pretest.dto.NoticiaFeedDTO;
 import com.example.aletheia.pretest.dto.NoticiaResponseDTO;
-import com.example.aletheia.pretest.models.enums.Fase;
-import com.example.aletheia.pretest.models.enums.Forma;
 import com.example.aletheia.pretest.service.INoticiaService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
-@RequestMapping("/api/noticia")
+@RequestMapping("/api/noticias")
 @RequiredArgsConstructor
 public class NoticiaController {
 
@@ -44,5 +41,10 @@ public class NoticiaController {
     public List<NoticiaFeedDTO> feed(HttpServletRequest request) {
         Integer participanteId = (Integer) request.getAttribute("authenticatedParticipanteId");
         return service.obtenerFeedParaParticipante(participanteId);
+    }
+
+    @PostMapping("/lote")
+    public ResponseEntity<List<NoticiaResponseDTO>> crearEnLote(@Valid @RequestBody List<NoticiaCreateDTO> dtos) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.crearEnLote(dtos));
     }
 }

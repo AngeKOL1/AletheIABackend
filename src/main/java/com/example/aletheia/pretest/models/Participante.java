@@ -77,6 +77,12 @@ public class Participante {
     @Column(name = "rol", nullable = false)
     private Rol rol;
 
+    @Column(name = "medio_comunicacion")
+    private String medioComunicacion;
+
+    @Column(name = "cargo")
+    private String cargo;
+
     @CreationTimestamp
     @Column(name = "fecha_registro", nullable = false, updatable = false)
     private LocalDateTime fechaRegistro;
