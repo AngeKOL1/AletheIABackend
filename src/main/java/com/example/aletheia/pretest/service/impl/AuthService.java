@@ -1,13 +1,15 @@
 package com.example.aletheia.pretest.service.impl;
 
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 import com.example.aletheia.pretest.dto.LoginRequestDTO;
 import com.example.aletheia.pretest.dto.LoginResponseDTO;
+import com.example.aletheia.pretest.exception.InvalidCredentialsException;
+import com.example.aletheia.pretest.exception.UserDisabledException;
 import com.example.aletheia.pretest.security.CustomUserDetails;
 import com.example.aletheia.pretest.security.JwtTokenUtil;
 import com.example.aletheia.pretest.security.JwtUserDetailsService;
@@ -23,19 +25,21 @@ public class AuthService {
     private final JwtUserDetailsService jwtUserDetailsService;
 
     public LoginResponseDTO autenticar(LoginRequestDTO dto) {
+        String correo = dto.getCorreo().trim();
 
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(dto.getCorreo(), dto.getContrasena())
+                    new UsernamePasswordAuthenticationToken(correo, dto.getContrasena())
             );
         } catch (DisabledException e) {
-            throw new RuntimeException("Usuario deshabilitado");
-        } catch (BadCredentialsException e) {
-            throw new RuntimeException("Credenciales inválidas");
+            throw new UserDisabledException("Usuario deshabilitado");
+        } catch (AuthenticationException e) {
+            // Credenciales incorrectas, usuario inexistente, etc.: mismo mensaje para no revelar cuál fue.
+            throw new InvalidCredentialsException("Credenciales inválidas");
         }
 
         CustomUserDetails userDetails =
-                (CustomUserDetails) jwtUserDetailsService.loadUserByUsername(dto.getCorreo());
+                (CustomUserDetails) jwtUserDetailsService.loadUserByUsername(correo);
 
         String token = jwtTokenUtil.generateToken(userDetails, userDetails.getId());
 

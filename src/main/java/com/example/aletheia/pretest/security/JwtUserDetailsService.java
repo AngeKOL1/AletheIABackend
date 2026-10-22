@@ -23,7 +23,8 @@ public class JwtUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String correo) throws UsernameNotFoundException {
 
-        Participante participante = participanteRepository.findByCorreo(correo)
+        // Sin distinguir mayúsculas: "Ana@x.com" y "ana@x.com" son la misma cuenta.
+        Participante participante = participanteRepository.findByCorreoIgnoreCase(correo.trim())
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + correo));
 
         List<GrantedAuthority> authorities = List.of(

@@ -3,6 +3,7 @@ package com.example.aletheia.pretest.service.impl;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.aletheia.pretest.dto.PrediccionManualCreateDTO;
 import com.example.aletheia.pretest.dto.PrediccionManualResponseDTO;
@@ -37,6 +38,7 @@ public class PrediccionManualService extends GenericService<PrediccionManual, In
     }
 
     @Override
+    @Transactional
     public PrediccionManualResponseDTO registrar(Integer participanteId, PrediccionManualCreateDTO dto) {
         if (repo.existsByParticipanteIdAndNoticiaIdAndFase(participanteId, dto.getNoticiaId(), dto.getFase())) {
             throw new IllegalStateException("Ya existe una respuesta para esta noticia en esta fase");
@@ -46,6 +48,9 @@ public class PrediccionManualService extends GenericService<PrediccionManual, In
                 .orElseThrow(() -> new ModelNotFoundException("Participante no encontrado"));
         Noticia noticia = noticiaRepo.findById(dto.getNoticiaId())
                 .orElseThrow(() -> new ModelNotFoundException("Noticia no encontrada"));
+        if (noticia.getForma() != participante.getFormaAsignada()) {
+            throw new IllegalArgumentException("La noticia no pertenece a la forma asignada al participante");
+        }
         CategoriaVeredicto categoria = categoriaRepo.findById(dto.getCategoriaElegidaId())
                 .orElseThrow(() -> new ModelNotFoundException("Categoría no encontrada"));
 

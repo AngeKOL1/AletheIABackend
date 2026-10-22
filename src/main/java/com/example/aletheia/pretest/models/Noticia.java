@@ -14,7 +14,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
@@ -22,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @AllArgsConstructor
@@ -49,15 +49,15 @@ public class Noticia {
     @Column(name = "entradilla")
     private String entradilla;
 
-    @Lob
-    @Column(name = "cuerpo")
+    // TEXT en lugar de @Lob: en PostgreSQL @Lob crea una columna oid (objeto grande).
+    @Column(name = "cuerpo", columnDefinition = "TEXT")
     private String cuerpo;
 
     @Column(name = "cierre")
     private String cierre;
 
     @NotBlank
-    @Column(name = "img", nullable = false)
+    @Column(name = "img", nullable = false, length = 2048)
     private String img;
 
     @Column(name = "fuente")
@@ -77,10 +77,10 @@ public class Noticia {
     @Column(name = "fuente_texto")
     private FuenteTexto fuenteTexto;
 
-    @Lob
-    @Column(name = "texto_ocr_bruto")
+    @Column(name = "texto_ocr_bruto", columnDefinition = "TEXT")
     private String textoOcrBruto;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoria_veredicto_id", nullable = false)
     private CategoriaVeredicto categoriaVeredicto;

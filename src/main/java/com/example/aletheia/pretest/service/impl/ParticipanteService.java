@@ -1,5 +1,6 @@
 package com.example.aletheia.pretest.service.impl;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Random;
 
@@ -45,7 +46,15 @@ public class ParticipanteService extends GenericService<Participante, Integer> i
 
     @Override
     public ParticipanteResponseDTO registrar(ParticipanteRegisterDTO dto) {
+        String correo = dto.getCorreo().trim().toLowerCase(Locale.ROOT);
+        if (repo.existsByCorreoIgnoreCase(correo)) {
+            throw new IllegalStateException("Ya existe una cuenta registrada con ese correo");
+        }
+
         Participante participante = mapper.toEntity(dto);
+        participante.setCorreo(correo);
+        participante.setNombres(dto.getNombres().trim());
+        participante.setApellidos(dto.getApellidos().trim());
         participante.setContrasenaHash(passwordEncoderService.encode(dto.getContrasena()));
         participante.setRol(Rol.PARTICIPANTE);
         participante.setFormaAsignada(new Random().nextBoolean() ? Forma.A : Forma.B);

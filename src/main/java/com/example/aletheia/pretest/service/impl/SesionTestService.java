@@ -4,8 +4,11 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.example.aletheia.pretest.dto.SesionTestResponseDTO;
 import com.example.aletheia.pretest.exception.ModelNotFoundException;
+import com.example.aletheia.pretest.mapper.SesionTestMapper;
 import com.example.aletheia.pretest.models.Participante;
 import com.example.aletheia.pretest.models.SesionTest;
 import com.example.aletheia.pretest.models.enums.Fase;
@@ -21,6 +24,7 @@ public class SesionTestService extends GenericService<SesionTest, Integer> imple
 
     private final SesionTestRepo repo;
     private final ParticipanteRepo participanteRepo;
+    private final SesionTestMapper mapper;
 
     @Override
     protected SesionTestRepo getRepo() {
@@ -28,10 +32,11 @@ public class SesionTestService extends GenericService<SesionTest, Integer> imple
     }
 
     @Override
-    public SesionTest iniciar(Integer participanteId, Fase fase, String titulo) {
+    @Transactional
+    public SesionTestResponseDTO iniciar(Integer participanteId, Fase fase, String titulo) {
         Optional<SesionTest> existente = repo.findByParticipanteIdAndFase(participanteId, fase);
         if (existente.isPresent() && existente.get().getHoraFin() == null) {
-            return existente.get(); // ya hay una sesión abierta, la reutiliza
+            return mapper.toResponseDTO(existente.get()); // ya hay una sesión abierta, la reutiliza
         }
         if (existente.isPresent()) {
             throw new IllegalStateException("Ya completaste el cuestionario de esta fase");
@@ -42,16 +47,21 @@ public class SesionTestService extends GenericService<SesionTest, Integer> imple
         SesionTest sesion = new SesionTest();
         sesion.setParticipante(participante);
         sesion.setFase(fase);
-        sesion.setTitulo(titulo);
+        sesion.setTitulo(titulo.trim());
         sesion.setHoraInicio(LocalDateTime.now());
-        return repo.save(sesion);
+        return mapper.toResponseDTO(repo.save(sesion));
     }
 
     @Override
-    public SesionTest finalizar(Integer sesionId) {
-        SesionTest sesion = repo.findById(sesionId)
+    @Transactional
+    public SesionTestResponseDTO finalizar(Integer participanteId, Integer sesionId) {
+        // Solo se encuentra si la sesión pertenece al participante del token.
+        SesionTest sesion = repo.findByIdAndParticipanteId(sesionId, participanteId)
                 .orElseThrow(() -> new ModelNotFoundException("Sesión no encontrada"));
+        if (sesion.getHoraFin() != null) {
+            throw new IllegalStateException("La sesión ya fue finalizada");
+        }
         sesion.setHoraFin(LocalDateTime.now());
-        return repo.save(sesion);
+        return mapper.toResponseDTO(repo.save(sesion));
     }
 }

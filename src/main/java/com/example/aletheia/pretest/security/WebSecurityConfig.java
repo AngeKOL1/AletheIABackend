@@ -84,6 +84,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/noticias", "/api/noticias/lote")
                         .hasAuthority(INVESTIGADOR)
                         .requestMatchers(HttpMethod.GET, "/api/noticias").hasAuthority(INVESTIGADOR)
+                        .requestMatchers(HttpMethod.GET, "/api/participantes").hasAuthority(INVESTIGADOR)
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint));
 

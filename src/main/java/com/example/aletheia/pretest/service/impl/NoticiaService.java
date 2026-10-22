@@ -3,6 +3,7 @@ package com.example.aletheia.pretest.service.impl;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.aletheia.pretest.dto.NoticiaCreateDTO;
 import com.example.aletheia.pretest.dto.NoticiaFeedDTO;
@@ -34,6 +35,7 @@ public class NoticiaService extends GenericService<Noticia, Integer> implements 
     }
 
     @Override
+    @Transactional
     public NoticiaResponseDTO createNoticia(NoticiaCreateDTO noticiaCreateDTO) {
         Noticia noticia = mapper.toEntity(noticiaCreateDTO);
         CategoriaVeredicto categoria = categoriaVeredictoRepo.findById(noticiaCreateDTO.getCategoriaVeredictoId())
@@ -59,7 +61,9 @@ public class NoticiaService extends GenericService<Noticia, Integer> implements 
         return mapper.toFeedDTOList(repo.findByFormaOrderByIdAsc(participante.getFormaAsignada()));
     }
 
+    // Todo o nada: si una noticia falla, no se guarda ninguna del lote.
     @Override
+    @Transactional
     public List<NoticiaResponseDTO> crearEnLote(List<NoticiaCreateDTO> dtos) {
         return dtos.stream()
                 .map(this::createNoticia)

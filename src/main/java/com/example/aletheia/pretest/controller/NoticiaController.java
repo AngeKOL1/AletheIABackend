@@ -10,6 +10,8 @@ import com.example.aletheia.pretest.service.INoticiaService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -44,7 +46,8 @@ public class NoticiaController {
     }
 
     @PostMapping("/lote")
-    public ResponseEntity<List<NoticiaResponseDTO>> crearEnLote(@Valid @RequestBody List<NoticiaCreateDTO> dtos) {
+    public ResponseEntity<List<NoticiaResponseDTO>> crearEnLote(
+            @RequestBody @NotEmpty @Size(max = 500) List<@Valid NoticiaCreateDTO> dtos) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.crearEnLote(dtos));
     }
 }
