@@ -59,6 +59,8 @@ public class RespuestaCuestionarioService extends GenericService<RespuestaCuesti
 
         Map<Integer, ItemCuestionario> items = itemRepo.findAllById(idsVistos).stream()
                 .collect(Collectors.toMap(ItemCuestionario::getId, Function.identity()));
+        // Una sola consulta para saber qué ítems ya se respondieron en esta sesión.
+        Set<Integer> yaRespondidos = repo.findItemIdsRespondidosBySesionTestId(sesion.getId());
 
         List<RespuestaCuestionario> respuestas = entrada.stream().map(r -> {
             ItemCuestionario item = items.get(r.getItemCuestionarioId());
@@ -73,7 +75,7 @@ public class RespuestaCuestionarioService extends GenericService<RespuestaCuesti
                 throw new IllegalArgumentException(
                         "Respuesta inválida para el ítem " + item.getId() + " (tipo " + item.getTipoRespuesta().getEtiqueta() + ")");
             }
-            if (repo.existsBySesionTestIdAndItemCuestionarioId(sesion.getId(), item.getId())) {
+            if (yaRespondidos.contains(item.getId())) {
                 throw new IllegalStateException("El ítem " + item.getId() + " ya fue respondido en esta sesión");
             }
 

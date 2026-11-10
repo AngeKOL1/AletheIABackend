@@ -3,6 +3,7 @@ package com.example.aletheia.pretest.service.impl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +13,6 @@ import com.example.aletheia.pretest.exception.InvalidCredentialsException;
 import com.example.aletheia.pretest.exception.UserDisabledException;
 import com.example.aletheia.pretest.security.CustomUserDetails;
 import com.example.aletheia.pretest.security.JwtTokenUtil;
-import com.example.aletheia.pretest.security.JwtUserDetailsService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,13 +22,13 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenUtil jwtTokenUtil;
-    private final JwtUserDetailsService jwtUserDetailsService;
 
     public LoginResponseDTO autenticar(LoginRequestDTO dto) {
         String correo = dto.getCorreo().trim();
 
+        Authentication autenticacion;
         try {
-            authenticationManager.authenticate(
+            autenticacion = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(correo, dto.getContrasena())
             );
         } catch (DisabledException e) {
@@ -38,8 +38,8 @@ public class AuthService {
             throw new InvalidCredentialsException("Credenciales inválidas");
         }
 
-        CustomUserDetails userDetails =
-                (CustomUserDetails) jwtUserDetailsService.loadUserByUsername(correo);
+        // El usuario ya viene cargado en la autenticación; no hace falta volver a consultarlo.
+        CustomUserDetails userDetails = (CustomUserDetails) autenticacion.getPrincipal();
 
         String token = jwtTokenUtil.generateToken(userDetails, userDetails.getId());
 

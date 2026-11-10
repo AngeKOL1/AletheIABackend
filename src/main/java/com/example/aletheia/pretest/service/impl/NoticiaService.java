@@ -12,8 +12,6 @@ import com.example.aletheia.pretest.exception.ModelNotFoundException;
 import com.example.aletheia.pretest.mapper.NoticiaMapper;
 import com.example.aletheia.pretest.models.CategoriaVeredicto;
 import com.example.aletheia.pretest.models.Noticia;
-import com.example.aletheia.pretest.models.Participante;
-import com.example.aletheia.pretest.models.enums.Forma;
 import com.example.aletheia.pretest.repository.CategoriaVeredictoRepo;
 import com.example.aletheia.pretest.repository.NoticiaRepo;
 import com.example.aletheia.pretest.repository.ParticipanteRepo;
@@ -23,6 +21,7 @@ import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class NoticiaService extends GenericService<Noticia, Integer> implements INoticiaService {
     private final NoticiaRepo repo;
     private final CategoriaVeredictoRepo categoriaVeredictoRepo;
@@ -45,20 +44,16 @@ public class NoticiaService extends GenericService<Noticia, Integer> implements 
     }
 
     @Override
-    public List<NoticiaFeedDTO> obtenerFeedPorForma(Forma forma) {
-        return mapper.toFeedDTOList(repo.findByForma(forma));
-    }
-
-    @Override
     public List<NoticiaResponseDTO> listarTodas() {
-        return mapper.toResponseDTOList(repo.findAll());
+        return repo.findAllResumen();
     }
 
     @Override
     public List<NoticiaFeedDTO> obtenerFeedParaParticipante(Integer participanteId) {
-        Participante participante = participanteRepo.findById(participanteId)
-                .orElseThrow(() -> new ModelNotFoundException("Participante no encontrado"));
-        return mapper.toFeedDTOList(repo.findByFormaOrderByIdAsc(participante.getFormaAsignada()));
+        // Sin forma asignada (p. ej. un investigador) no hay feed.
+        return participanteRepo.findFormaAsignadaById(participanteId)
+                .map(repo::findFeedByForma)
+                .orElse(List.of());
     }
 
     // Todo o nada: si una noticia falla, no se guarda ninguna del lote.

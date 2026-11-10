@@ -3,6 +3,7 @@ package com.example.aletheia.pretest.service.impl;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.aletheia.pretest.dto.ItemCuestionarioResponseDTO;
 import com.example.aletheia.pretest.mapper.ItemCuestionarioMapper;
@@ -16,6 +17,7 @@ import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class ItemCuestionarioService extends GenericService<ItemCuestionario, Integer>
         implements IItemCuestionarioService {
     private final ItemCuestionarioRepo repo;

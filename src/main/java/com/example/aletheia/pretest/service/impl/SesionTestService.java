@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.aletheia.pretest.dto.SesionTestResponseDTO;
 import com.example.aletheia.pretest.exception.ModelNotFoundException;
 import com.example.aletheia.pretest.mapper.SesionTestMapper;
-import com.example.aletheia.pretest.models.Participante;
 import com.example.aletheia.pretest.models.SesionTest;
 import com.example.aletheia.pretest.models.enums.Fase;
 import com.example.aletheia.pretest.repository.ParticipanteRepo;
@@ -42,10 +41,9 @@ public class SesionTestService extends GenericService<SesionTest, Integer> imple
             throw new IllegalStateException("Ya completaste el cuestionario de esta fase");
         }
 
-        Participante participante = participanteRepo.findById(participanteId)
-                .orElseThrow(() -> new ModelNotFoundException("Participante no encontrado"));
         SesionTest sesion = new SesionTest();
-        sesion.setParticipante(participante);
+        // Referencia: solo aporta la clave foránea, sin cargar el participante.
+        sesion.setParticipante(participanteRepo.getReferenceById(participanteId));
         sesion.setFase(fase);
         sesion.setTitulo(titulo.trim());
         sesion.setHoraInicio(LocalDateTime.now());
