@@ -2,8 +2,10 @@ package com.example.aletheia.pretest.exception;
 
 import org.springframework.dao.DataIntegrityViolationException;
 // import org.apache.hc.client5.http.auth.InvalidCredentialsException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -28,6 +30,53 @@ import java.util.Map;
 @Slf4j
 public class ResponseExceptionHandler {
     public static final String ERROR_TYPE_PROPERTY = "errorType";
+
+    // ---------- AletheIA (nunca se usa errorType "AuthError": el frontend cerraría la sesión) ----------
+
+    /** 401 de AletheIA: problema de configuración del servidor, no del usuario. */
+    @ExceptionHandler(AletheiaConfiguracionException.class)
+    public ProblemDetail handleAletheiaConfiguracion(AletheiaConfiguracionException ex, HttpServletRequest request) {
+        return problemaAletheia(HttpStatus.BAD_GATEWAY, "Servicio de verificación no disponible",
+                "El servicio de verificación no está disponible en este momento. Avisa al equipo de investigación.",
+                "VerificationServiceError", request);
+    }
+
+    @ExceptionHandler(AletheiaNoticiaInvalidaException.class)
+    public ProblemDetail handleAletheiaNoticiaInvalida(AletheiaNoticiaInvalidaException ex, HttpServletRequest request) {
+        return problemaAletheia(HttpStatus.UNPROCESSABLE_CONTENT, "Noticia no válida para verificar",
+                "El servicio de verificación rechazó la noticia: " + ex.getMessage(), "ValidationError", request);
+    }
+
+    @ExceptionHandler(AletheiaOcupadoException.class)
+    public ResponseEntity<ProblemDetail> handleAletheiaOcupado(AletheiaOcupadoException ex, HttpServletRequest request) {
+        ProblemDetail pd = problemaAletheia(HttpStatus.SERVICE_UNAVAILABLE, "Servicio de verificación ocupado",
+                "Hay demasiadas verificaciones en curso. Inténtalo de nuevo en unos minutos.",
+                "VerificationServiceBusy", request);
+        ResponseEntity.BodyBuilder respuesta = ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE);
+        if (ex.getReintentarEnSegundos() != null) {
+            pd.setProperty("reintentarEnSegundos", ex.getReintentarEnSegundos());
+            respuesta.header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getReintentarEnSegundos()));
+        }
+        return respuesta.body(pd);
+    }
+
+    /** Red caída, timeout, 5xx o un 404 inesperado de AletheIA. */
+    @ExceptionHandler({ AletheiaNoDisponibleException.class, AletheiaAnalisisNoEncontradoException.class })
+    public ProblemDetail handleAletheiaNoDisponible(AletheiaException ex, HttpServletRequest request) {
+        log.warn("AletheIA no disponible: {}", ex.getMessage());
+        return problemaAletheia(HttpStatus.BAD_GATEWAY, "Servicio de verificación no disponible",
+                "No se pudo contactar con el servicio de verificación. Inténtalo de nuevo más tarde.",
+                "VerificationServiceError", request);
+    }
+
+    private static ProblemDetail problemaAletheia(HttpStatus estado, String titulo, String detalle, String tipo,
+            HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(estado, detalle);
+        pd.setTitle(titulo);
+        pd.setInstance(URI.create(request.getRequestURI()));
+        pd.setProperty(ERROR_TYPE_PROPERTY, tipo);
+        return pd;
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationErrors(

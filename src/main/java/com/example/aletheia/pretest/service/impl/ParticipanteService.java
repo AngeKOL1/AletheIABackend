@@ -78,7 +78,7 @@ public class ParticipanteService extends GenericService<Participante, Integer> i
 
         Optional<SesionTest> sesion = sesionTestRepo.findByParticipanteIdAndFase(participanteId, fase);
         boolean cuestionarioCompletado = sesion.map(s -> s.getHoraFin() != null).orElse(false);
-        Integer sesionAbiertaId = sesion.filter(s -> s.getHoraFin() == null).map(SesionTest::getId).orElse(null);
+        Integer sesionAbiertaId = sesion.filter(s -> s.getHoraFin() == null).map(s -> s.getId()).orElse(null);
 
         return new EstadoParticipanteDTO(respondidas, totalNoticias, cuestionarioCompletado, sesionAbiertaId);
     }

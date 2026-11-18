@@ -3,6 +3,7 @@ package com.example.aletheia.pretest.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -10,6 +11,8 @@ import com.example.aletheia.pretest.dto.NoticiaFeedDTO;
 import com.example.aletheia.pretest.dto.NoticiaResponseDTO;
 import com.example.aletheia.pretest.models.Noticia;
 import com.example.aletheia.pretest.models.enums.Forma;
+
+import jakarta.persistence.LockModeType;
 
 public interface NoticiaRepo extends GenericRepo<Noticia, Integer> {
 
@@ -31,6 +34,14 @@ public interface NoticiaRepo extends GenericRepo<Noticia, Integer> {
             ORDER BY n.id
             """)
     List<NoticiaResponseDTO> findAllResumen();
+
+    /**
+     * Noticia bloqueada hasta el fin de la transacción: evita que dos peticiones simultáneas
+     * creen (y paguen) dos análisis de la misma noticia.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT n FROM Noticia n WHERE n.id = :id")
+    Optional<Noticia> findByIdParaAnalisis(@Param("id") Integer id);
 
     @Query("SELECT n.forma FROM Noticia n WHERE n.id = :id")
     Optional<Forma> findFormaById(@Param("id") Integer id);

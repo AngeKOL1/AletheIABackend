@@ -58,7 +58,7 @@ public class RespuestaCuestionarioService extends GenericService<RespuestaCuesti
         }
 
         Map<Integer, ItemCuestionario> items = itemRepo.findAllById(idsVistos).stream()
-                .collect(Collectors.toMap(ItemCuestionario::getId, Function.identity()));
+                .collect(Collectors.toMap(item -> item.getId(), Function.identity()));
         // Una sola consulta para saber qué ítems ya se respondieron en esta sesión.
         Set<Integer> yaRespondidos = repo.findItemIdsRespondidosBySesionTestId(sesion.getId());
 

@@ -29,6 +29,7 @@ public class CategoriaVeredictoService extends GenericService<CategoriaVeredicto
 
     @Override
     public List<CategoriaVeredictoResponseDTO> listar(){
-        return mapper.toResponseDTOList(repo.findAll(Sort.by("id")));
+        // Orden tipado: si se renombra el campo, falla al compilar en vez de en ejecución.
+        return mapper.toResponseDTOList(repo.findAll(Sort.by(Sort.Direction.ASC, (CategoriaVeredicto c) -> c.getId())));
     }
 }
