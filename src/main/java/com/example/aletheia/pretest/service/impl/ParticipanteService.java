@@ -1,18 +1,18 @@
 package com.example.aletheia.pretest.service.impl;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Random;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.aletheia.pretest.dto.EstadoParticipanteDTO;
 import com.example.aletheia.pretest.dto.PageResponseDTO;
 import com.example.aletheia.pretest.dto.ParticipanteRegisterDTO;
 import com.example.aletheia.pretest.dto.ParticipanteResponseDTO;
-import com.example.aletheia.pretest.exception.ModelNotFoundException;
 import com.example.aletheia.pretest.mapper.ParticipanteMapper;
 import com.example.aletheia.pretest.models.Participante;
 import com.example.aletheia.pretest.models.SesionTest;
@@ -29,6 +29,7 @@ import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class ParticipanteService extends GenericService<Participante, Integer> implements IParticipanteService {
 
     private final ParticipanteRepo repo;
@@ -44,8 +45,17 @@ public class ParticipanteService extends GenericService<Participante, Integer> i
     }
 
     @Override
+    @Transactional
     public ParticipanteResponseDTO registrar(ParticipanteRegisterDTO dto) {
+        String correo = dto.getCorreo().trim().toLowerCase(Locale.ROOT);
+        if (repo.existsByCorreoIgnoreCase(correo)) {
+            throw new IllegalStateException("Ya existe una cuenta registrada con ese correo");
+        }
+
         Participante participante = mapper.toEntity(dto);
+        participante.setCorreo(correo);
+        participante.setNombres(dto.getNombres().trim());
+        participante.setApellidos(dto.getApellidos().trim());
         participante.setContrasenaHash(passwordEncoderService.encode(dto.getContrasena()));
         participante.setRol(Rol.PARTICIPANTE);
         participante.setFormaAsignada(new Random().nextBoolean() ? Forma.A : Forma.B);
@@ -55,22 +65,20 @@ public class ParticipanteService extends GenericService<Participante, Integer> i
 
     @Override
     public PageResponseDTO<ParticipanteResponseDTO> listarParticipantes(Pageable pageable) {
-        Page<Participante> pagina = repo.findAll(pageable);
-        Page<ParticipanteResponseDTO> paginaDTO = pagina.map(mapper::toResponseDTO);
-        return PageResponseDTO.from(paginaDTO);
+        return PageResponseDTO.from(repo.findAllResumen(pageable));
     }
 
     @Override
     public EstadoParticipanteDTO obtenerEstado(Integer participanteId, Fase fase) {
-        Participante participante = repo.findById(participanteId)
-                .orElseThrow(() -> new ModelNotFoundException("Participante no encontrado"));
+        // Solo se lee la forma asignada, no el participante completo.
+        Forma forma = repo.findFormaAsignadaById(participanteId).orElse(null);
 
         long respondidas = prediccionManualRepo.countByParticipanteIdAndFase(participanteId, fase);
-        long totalNoticias = noticiaRepo.countByForma(participante.getFormaAsignada());
+        long totalNoticias = (forma == null) ? 0 : noticiaRepo.countByForma(forma);
 
         Optional<SesionTest> sesion = sesionTestRepo.findByParticipanteIdAndFase(participanteId, fase);
         boolean cuestionarioCompletado = sesion.map(s -> s.getHoraFin() != null).orElse(false);
-        Integer sesionAbiertaId = sesion.filter(s -> s.getHoraFin() == null).map(SesionTest::getId).orElse(null);
+        Integer sesionAbiertaId = sesion.filter(s -> s.getHoraFin() == null).map(s -> s.getId()).orElse(null);
 
         return new EstadoParticipanteDTO(respondidas, totalNoticias, cuestionarioCompletado, sesionAbiertaId);
     }

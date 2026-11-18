@@ -5,5 +5,5 @@ import com.example.aletheia.pretest.models.RespuestaCuestionario;
 
 public interface IRespuestaCuestionarioService extends IGenericService<RespuestaCuestionario, Integer> {
 
-    void registrarLote(RespuestaCuestionarioLoteDTO dto);
+    void registrarLote(Integer participanteId, RespuestaCuestionarioLoteDTO dto);
 }

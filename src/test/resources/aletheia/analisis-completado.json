@@ -1,0 +1,78 @@
+{
+  "id": "6c10e5e777a54d90886d8cc7d943b30e",
+  "estado": "completado",
+  "creado": "2026-11-16T23:57:27.092203Z",
+  "actualizado": "2026-11-16T23:58:19.551000Z",
+  "informe": {
+    "version_esquema": "0.2.0",
+    "noticia_id": "6c10e5e777a54d90886d8cc7d943b30e",
+    "idioma": "es",
+    "veredicto_global": "falsa",
+    "motivo_sin_veredicto": null,
+    "justificacion_global": "Marte tiene dos lunas, Fobos y Deimos; Europa y Titán son lunas de Júpiter y Saturno.",
+    "regla_agregacion_aplicada": "H-AG-3:R1",
+    "distorsion_global": {
+      "detectada": true,
+      "tipo": "titular_no_sustentado",
+      "afirmaciones_implicadas": ["a1"],
+      "evidencias_implicadas": ["e1"],
+      "justificacion": "El titular repite la afirmación falsa."
+    },
+    "afirmaciones": [
+      {
+        "id": "a1",
+        "texto": "Marte tiene dos lunas: Europa y Titán",
+        "ubicacion": "titular",
+        "postura_noticia": "asume",
+        "central": true,
+        "tipo": "factual",
+        "estado": "procesada",
+        "recuperacion": "realizada",
+        "veredicto": "falsa",
+        "tipo_problema": "error_factual",
+        "evidencias": [
+          {
+            "id": "e1",
+            "url": "https://science.nasa.gov/mars/moons/",
+            "dominio": "science.nasa.gov",
+            "titulo": "Mars Moons",
+            "fuente": "NASA",
+            "fecha_publicacion": "2024-03-01",
+            "fecha_consulta": "2026-11-16",
+            "origen_recuperacion": "busqueda_web",
+            "grupo_origen": null,
+            "tipo_fuente": "primaria",
+            "postura": "contradice",
+            "fragmento_relevante": "Mars has two small moons, Phobos and Deimos."
+          }
+        ],
+        "solidez_evidencia": "alta",
+        "justificacion": "Las lunas de Marte son Fobos y Deimos."
+      },
+      {
+        "id": "a2",
+        "texto": "Es el descubrimiento más emocionante del siglo",
+        "ubicacion": "cuerpo",
+        "postura_noticia": "asume",
+        "central": false,
+        "tipo": "opinion",
+        "estado": "procesada",
+        "recuperacion": "no_aplica",
+        "veredicto": "verdadera",
+        "tipo_problema": null,
+        "evidencias": [],
+        "solidez_evidencia": null,
+        "justificacion": "Es una opinión."
+      }
+    ],
+    "limitaciones": ["Solo se consultaron fuentes en inglés y español."],
+    "verificacion_externa_realizada": true,
+    "metadatos": {
+      "fecha_analisis": "2026-11-16T23:58:19.551000Z",
+      "regla_agregacion": "H-AG-3",
+      "etapas": [{"etapa": "extraccion", "modelo": "modelo-x", "version_prompt": "v5"}],
+      "proveedores_recuperacion": ["serper", "google_fact_check"]
+    }
+  },
+  "error": null
+}

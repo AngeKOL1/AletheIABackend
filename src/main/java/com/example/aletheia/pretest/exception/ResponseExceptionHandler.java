@@ -2,20 +2,28 @@ package com.example.aletheia.pretest.exception;
 
 import org.springframework.dao.DataIntegrityViolationException;
 // import org.apache.hc.client5.http.auth.InvalidCredentialsException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -23,18 +31,125 @@ import java.util.Map;
 public class ResponseExceptionHandler {
     public static final String ERROR_TYPE_PROPERTY = "errorType";
 
+    // ---------- AletheIA (nunca se usa errorType "AuthError": el frontend cerraría la sesión) ----------
+
+    /** 401 de AletheIA: problema de configuración del servidor, no del usuario. */
+    @ExceptionHandler(AletheiaConfiguracionException.class)
+    public ProblemDetail handleAletheiaConfiguracion(AletheiaConfiguracionException ex, HttpServletRequest request) {
+        return problemaAletheia(HttpStatus.BAD_GATEWAY, "Servicio de verificación no disponible",
+                "El servicio de verificación no está disponible en este momento. Avisa al equipo de investigación.",
+                "VerificationServiceError", request);
+    }
+
+    @ExceptionHandler(AletheiaNoticiaInvalidaException.class)
+    public ProblemDetail handleAletheiaNoticiaInvalida(AletheiaNoticiaInvalidaException ex, HttpServletRequest request) {
+        return problemaAletheia(HttpStatus.UNPROCESSABLE_CONTENT, "Noticia no válida para verificar",
+                "El servicio de verificación rechazó la noticia: " + ex.getMessage(), "ValidationError", request);
+    }
+
+    @ExceptionHandler(AletheiaOcupadoException.class)
+    public ResponseEntity<ProblemDetail> handleAletheiaOcupado(AletheiaOcupadoException ex, HttpServletRequest request) {
+        ProblemDetail pd = problemaAletheia(HttpStatus.SERVICE_UNAVAILABLE, "Servicio de verificación ocupado",
+                "Hay demasiadas verificaciones en curso. Inténtalo de nuevo en unos minutos.",
+                "VerificationServiceBusy", request);
+        ResponseEntity.BodyBuilder respuesta = ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE);
+        if (ex.getReintentarEnSegundos() != null) {
+            pd.setProperty("reintentarEnSegundos", ex.getReintentarEnSegundos());
+            respuesta.header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getReintentarEnSegundos()));
+        }
+        return respuesta.body(pd);
+    }
+
+    /** Red caída, timeout, 5xx o un 404 inesperado de AletheIA. */
+    @ExceptionHandler({ AletheiaNoDisponibleException.class, AletheiaAnalisisNoEncontradoException.class })
+    public ProblemDetail handleAletheiaNoDisponible(AletheiaException ex, HttpServletRequest request) {
+        log.warn("AletheIA no disponible: {}", ex.getMessage());
+        return problemaAletheia(HttpStatus.BAD_GATEWAY, "Servicio de verificación no disponible",
+                "No se pudo contactar con el servicio de verificación. Inténtalo de nuevo más tarde.",
+                "VerificationServiceError", request);
+    }
+
+    private static ProblemDetail problemaAletheia(HttpStatus estado, String titulo, String detalle, String tipo,
+            HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(estado, detalle);
+        pd.setTitle(titulo);
+        pd.setInstance(URI.create(request.getRequestURI()));
+        pd.setProperty(ERROR_TYPE_PROPERTY, tipo);
+        return pd;
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationErrors(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
 
-        Map<String, String> errores = new HashMap<>();
+        Map<String, String> errores = new LinkedHashMap<>();
 
         ex.getBindingResult().getAllErrors().forEach(error -> {
-            String campo = ((FieldError) error).getField();
-            String mensaje = error.getDefaultMessage();
-            errores.put(campo, mensaje);
+            // Los errores a nivel de clase (ObjectError) no tienen campo.
+            String campo = (error instanceof FieldError fe) ? fe.getField() : error.getObjectName();
+            agregarError(errores, campo, error.getDefaultMessage());
         });
 
+        return problemaDeValidacion(errores, request);
+    }
+
+    /** Validaciones sobre parámetros (@RequestParam, listas en @RequestBody...). */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ProblemDetail handleMethodValidation(HandlerMethodValidationException ex, HttpServletRequest request) {
+        Map<String, String> errores = new LinkedHashMap<>();
+
+        ex.getParameterValidationResults().forEach(resultado -> {
+            String base = resultado.getMethodParameter().getParameterName();
+            if (resultado.getContainerIndex() != null) {
+                base = base + "[" + resultado.getContainerIndex() + "]";
+            }
+            for (MessageSourceResolvable error : resultado.getResolvableErrors()) {
+                String campo = (error instanceof FieldError fe) ? base + "." + fe.getField() : base;
+                agregarError(errores, campo, error.getDefaultMessage());
+            }
+        });
+
+        return problemaDeValidacion(errores, request);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ProblemDetail handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
+        Map<String, String> errores = new LinkedHashMap<>();
+        ex.getConstraintViolations().forEach(v ->
+                agregarError(errores, v.getPropertyPath().toString(), v.getMessage()));
+        return problemaDeValidacion(errores, request);
+    }
+
+    /** JSON mal formado o valor no permitido (p. ej. un enum inexistente como "fase": "MEDIO"). */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail handleNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        log.warn("Cuerpo de petición ilegible: {}", ex.getMostSpecificCause().getMessage());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "El cuerpo de la petición tiene un formato inválido o contiene valores no permitidos");
+        pd.setTitle("Petición inválida");
+        pd.setInstance(URI.create(request.getRequestURI()));
+        pd.setProperty(ERROR_TYPE_PROPERTY, "ValidationError");
+        return pd;
+    }
+
+    /** Parámetro con tipo incorrecto (p. ej. ?fase=XYZ o /sesiones-test/abc/finalizar). */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "Valor inválido para el parámetro '" + ex.getName() + "'");
+        pd.setTitle("Parámetro inválido");
+        pd.setInstance(URI.create(request.getRequestURI()));
+        pd.setProperty(ERROR_TYPE_PROPERTY, "ValidationError");
+        return pd;
+    }
+
+    private static void agregarError(Map<String, String> errores, String campo, String mensaje) {
+        errores.merge(campo, mensaje, (previo, nuevo) -> previo + "; " + nuevo);
+    }
+
+    private static ProblemDetail problemaDeValidacion(Map<String, String> errores, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST,
                 "Uno o más campos tienen errores de validación");
@@ -115,6 +230,7 @@ public class ResponseExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex, WebRequest request) {
+        log.error("DataIntegrityViolationException: {}", ex.getMostSpecificCause().getMessage());
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.CONFLICT,
                 "El recurso ya existe o viola una restricción de la base de datos");
@@ -128,6 +244,16 @@ public class ResponseExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         pd.setTitle("Estado inválido");
         pd.setProperty(ERROR_TYPE_PROPERTY, "InvalidState");
+        return pd;
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ProblemDetail handleMissingParam(MissingServletRequestParameterException ex, WebRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "Falta el parámetro requerido: " + ex.getParameterName());
+        pd.setTitle("Parámetro faltante");
+        pd.setProperty(ERROR_TYPE_PROPERTY, "ValidationError");
         return pd;
     }
 

@@ -4,11 +4,18 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.example.aletheia.pretest.models.converters.FrecuenciaConsumoNoticiasConverter;
+import com.example.aletheia.pretest.models.converters.GeneroConverter;
+import com.example.aletheia.pretest.models.converters.NivelEducativoConverter;
 import com.example.aletheia.pretest.models.enums.Forma;
+import com.example.aletheia.pretest.models.enums.FrecuenciaConsumoNoticias;
+import com.example.aletheia.pretest.models.enums.Genero;
+import com.example.aletheia.pretest.models.enums.NivelEducativo;
 import com.example.aletheia.pretest.models.enums.Rol;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -23,6 +30,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @AllArgsConstructor
@@ -54,20 +62,26 @@ public class Participante {
 
     @NotBlank
     @JsonIgnore
+    @ToString.Exclude
     @Column(name = "contrasena_hash", nullable = false)
     private String contrasenaHash;
 
     @Column(name = "edad")
     private Integer edad;
 
+    // Se guardan con su etiqueta ("Femenino", "Posgrado"...), igual que antes,
+    // así que los datos existentes siguen siendo válidos.
+    @Convert(converter = GeneroConverter.class)
     @Column(name = "genero")
-    private String genero;
+    private Genero genero;
 
+    @Convert(converter = NivelEducativoConverter.class)
     @Column(name = "nivel_educativo")
-    private String nivelEducativo;
+    private NivelEducativo nivelEducativo;
 
+    @Convert(converter = FrecuenciaConsumoNoticiasConverter.class)
     @Column(name = "frecuencia_consumo_noticias")
-    private String frecuenciaConsumoNoticias;
+    private FrecuenciaConsumoNoticias frecuenciaConsumoNoticias;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "forma_asignada")

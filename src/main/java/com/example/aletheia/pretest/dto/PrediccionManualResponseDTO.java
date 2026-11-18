@@ -2,17 +2,18 @@ package com.example.aletheia.pretest.dto;
 
 import java.time.LocalDateTime;
 import com.example.aletheia.pretest.models.enums.Fase;
+import com.example.aletheia.pretest.models.enums.NombreCategoria;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data 
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class PrediccionManualResponseDTO {
     private Integer id;
     private Integer noticiaId;
-    private String categoriaElegidaNombre;
+    private NombreCategoria categoriaElegidaNombre;
     private Fase fase;
     private Integer ordenPresentacion;
     private Integer tiempoRespuestaSeg;

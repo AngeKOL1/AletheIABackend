@@ -1,0 +1,50 @@
+{
+  "properties": [
+    {
+      "name": "jwt.secret",
+      "type": "java.lang.String",
+      "description": "Clave para firmar los tokens JWT (HS256, al menos 32 bytes). Se lee de la variable de entorno JWT_SECRET; nunca se escribe en el código."
+    },
+    {
+      "name": "aletheia.url",
+      "type": "java.lang.String",
+      "description": "URL base del servicio AletheIA. Variable de entorno ALETHEIA_URL.",
+      "defaultValue": "http://127.0.0.1:8000"
+    },
+    {
+      "name": "aletheia.api-key",
+      "type": "java.lang.String",
+      "description": "Clave compartida que se envía a AletheIA en la cabecera X-API-Key. Se lee de ALETHEIA_API_CLAVE; si falta, el backend no arranca."
+    },
+    {
+      "name": "aletheia.timeout-conexion",
+      "type": "java.time.Duration",
+      "description": "Tiempo máximo para conectar con AletheIA.",
+      "defaultValue": "5s"
+    },
+    {
+      "name": "aletheia.timeout-lectura",
+      "type": "java.time.Duration",
+      "description": "Tiempo máximo de espera de una respuesta de AletheIA.",
+      "defaultValue": "30s"
+    },
+    {
+      "name": "aletheia.intervalo-consulta",
+      "type": "java.time.Duration",
+      "description": "Cada cuánto la tarea programada consulta los análisis pendientes.",
+      "defaultValue": "10s"
+    },
+    {
+      "name": "aletheia.tiempo-maximo-pendiente",
+      "type": "java.time.Duration",
+      "description": "Pasado este tiempo, un análisis pendiente se marca como ERROR.",
+      "defaultValue": "10m"
+    },
+    {
+      "name": "aletheia.espera-reintento",
+      "type": "java.time.Duration",
+      "description": "Tras un análisis en ERROR o PERDIDO, tiempo mínimo antes de volver a enviar la misma noticia.",
+      "defaultValue": "1m"
+    }
+  ]
+}
